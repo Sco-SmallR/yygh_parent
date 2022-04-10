@@ -2,6 +2,7 @@ package heaven.yygh.hosp.service;
 
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import heaven.yygh.model.hosp.Hospital;
 import heaven.yygh.model.hosp.HospitalSet;
 
 /**
@@ -11,5 +12,7 @@ import heaven.yygh.model.hosp.HospitalSet;
  * @Modified By:
  */
 public interface HospitalSetService extends IService<HospitalSet> {
+    //2、根据传递过来的医院编码，查询数据库，查询签名
+    String getSignKey(String hoscode);
 
 }
