@@ -13,7 +13,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,7 +33,7 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict>
         implements DictService {
     //根据数据id查询子数据列表
     @Override
-    @Cacheable(value = "dict",keyGenerator = "keyGenerator")
+    @Cacheable(value = "dict", keyGenerator = "keyGenerator")
     public List<Dict> findChlidData(Long id) {
         QueryWrapper<Dict> wrapper = new QueryWrapper<>();//mybatisplus条件构造器
         wrapper.eq("parent_id", id);
@@ -48,7 +50,7 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict>
 
     //导出数据字典接口
     @Override
-    @CacheEvict(value = "dict", allEntries=true)
+    @CacheEvict(value = "dict", allEntries = true)
     public void exportData(HttpServletResponse response) {
         //设置下载信息
         response.setContentType("application/vnd.ms-excel");
@@ -79,11 +81,12 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict>
     @Override
     public void importData(MultipartFile file) {
         try {
-            EasyExcel.read(file.getInputStream(),DictEeVo.class,new DictListener(baseMapper)).sheet().doRead();
+            EasyExcel.read(file.getInputStream(), DictEeVo.class, new DictListener(baseMapper)).sheet().doRead();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     //判断id下面是否有子节点
     private boolean isChildren(Long id) {
@@ -94,4 +97,44 @@ public class DictServiceImpl extends ServiceImpl<DictMapper, Dict>
         return count > 0;// true or false
     }
 
+    // 根据value dictcode查询
+    @Cacheable(value = "dict", keyGenerator = "keyGenerator")
+    @Override
+    public String getNameByParentDictCodeAndValue(String parentDictCode, String value) {
+        //如果value能唯一定位数据字典，parentDictCode可以传空，例如：省市区的value值能够唯一确定
+        if (StringUtils.isEmpty(parentDictCode)) {
+            Dict dict = baseMapper.selectOne(new QueryWrapper<Dict>().eq("value", value));
+            if (null != dict) {
+                return dict.getName();
+            }
+        } else {
+            // 根据dictcode查询dict对象，得到dict的id值
+            Dict parentDict = this.getByDictsCode(parentDictCode);
+            if (null == parentDict) return "";
+            Dict dict = baseMapper.selectOne(new QueryWrapper<Dict>().eq("parent_id", parentDict.getId()).eq("value", value));
+            if (null != dict) {
+                return dict.getName();
+            }
+        }
+        return "";
+    }
+
+    private Dict getByDictsCode(String dictCode) {
+        QueryWrapper<Dict> wrapper = new QueryWrapper<>();
+        wrapper.eq("dict_code", dictCode);
+        Dict codeDict = baseMapper.selectOne(wrapper);
+        return codeDict;
+    }
+
+    // 根据dictcode获取下级节点
+
+    @Override
+    public List<Dict> findByDictCode(String dictCode) {
+        //根据dictcode获取对应id
+        Dict dict = this.getByDictsCode(dictCode);
+        // 根据id获取子节点
+        List<Dict> chlidData = this.findChlidData(dict.getId());
+        return chlidData;
+
+    }
 }

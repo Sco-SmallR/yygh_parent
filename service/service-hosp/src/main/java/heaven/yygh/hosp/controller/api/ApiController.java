@@ -218,7 +218,7 @@ public class ApiController {
                 throw new YyghException(ResultCodeEnum.SIGN_ERROR);
             }
             // 调用方法实现根据医院编号查询
-            Hospital hospital = hospitalService.getByHoscde(hoscode);
+            Hospital hospital = hospitalService.getByHoscode(hoscode);
             return Result.ok(hospital);
         }
 

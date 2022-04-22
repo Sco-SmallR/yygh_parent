@@ -3,7 +3,6 @@ package heaven.yygh.hosp.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import heaven.yygh.common.exception.YyghException;
 import heaven.yygh.common.result.Result;
 import heaven.yygh.hosp.service.HospitalSetService;
 import heaven.yygh.model.hosp.HospitalSet;
@@ -29,7 +28,7 @@ import java.util.Random;
 @Api(tags = "医院设置管理")
 @RestController
 @RequestMapping("admin/hosp/hospitalSet")
-@CrossOrigin
+//@CrossOrigin
 public class HospitalSetController {
     //注入service
     @Autowired
